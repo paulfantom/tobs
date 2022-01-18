@@ -1,0 +1,301 @@
+# Override the deployment namespace
+namespaceOverride: ""
+
+# Enabling Kube-Prometheus will install
+# Grafana & Prometheus into tobs as they
+# are part of Kube-Prometheus already
+fullnameOverride: "tobs-kube-prometheus"
+prometheus:
+  prometheusSpec:
+    scrapeInterval: "1m"
+    scrapeTimeout: "10s"
+    evaluationInterval: "1m"
+    # Prometheus metric retention
+    retention: 1d
+    # The remote_read spec configuration for Prometheus.
+    # ref: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#remotereadspec
+    remoteRead:
+      # - {protocol}://{host}:{port}/{endpoint}
+      - url: "http://{{ .Release.Name }}-promscale-connector.{{ .Release.Namespace }}.svc.cluster.local:9201/read"
+        readRecent: true
+
+    # The remote_write spec configuration for Prometheus.
+    # ref: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#remotewritespec
+    remoteWrite:
+      - url: "http://{{ .Release.Name }}-promscale-connector.{{ .Release.Namespace }}.svc.cluster.local:9201/write"
+
+    # Prometheus pod storage spec
+    storageSpec:
+      # Using PersistentVolumeClaim
+      # disable mount sub path, use the root directory of pvc
+      disableMountSubPath: true
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - "ReadWriteOnce"
+          resources:
+            requests:
+              storage: 8Gi
+
+    # We've enabled annotation-based scraping by default for backward-compatibility
+    # and to support the largest number of use-cases out-of-the-box.
+    # We encourage people to use ServiceMonitors and PodMonitors for new components.
+    # See discussion in: https://github.com/prometheus-operator/prometheus-operator/issues/1547
+    # and more info: https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack#prometheusioscrape
+    additionalScrapeConfigs:
+      - job_name: kubernetes-service-endpoints
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - action: keep
+            regex: true
+            source_labels:
+              - __meta_kubernetes_service_annotation_prometheus_io_scrape
+          - action: replace
+            regex: (https?)
+            source_labels:
+              - __meta_kubernetes_service_annotation_prometheus_io_scheme
+            target_label: __scheme__
+          - action: replace
+            regex: (.+)
+            source_labels:
+              - __meta_kubernetes_service_annotation_prometheus_io_path
+            target_label: __metrics_path__
+          - action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            source_labels:
+              - __address__
+              - __meta_kubernetes_service_annotation_prometheus_io_port
+            target_label: __address__
+          - action: labelmap
+            regex: __meta_kubernetes_service_label_(.+)
+          - action: replace
+            source_labels:
+              - __meta_kubernetes_namespace
+            target_label: kubernetes_namespace
+          - action: replace
+            source_labels:
+              - __meta_kubernetes_service_name
+            target_label: kubernetes_name
+          - action: replace
+            source_labels:
+              - __meta_kubernetes_pod_node_name
+            target_label: kubernetes_node
+      - job_name: kubernetes-service-endpoints-slow
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - action: keep
+            regex: true
+            source_labels:
+              - __meta_kubernetes_service_annotation_prometheus_io_scrape_slow
+          - action: replace
+            regex: (https?)
+            source_labels:
+              - __meta_kubernetes_service_annotation_prometheus_io_scheme
+            target_label: __scheme__
+          - action: replace
+            regex: (.+)
+            source_labels:
+              - __meta_kubernetes_service_annotation_prometheus_io_path
+            target_label: __metrics_path__
+          - action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            source_labels:
+              - __address__
+              - __meta_kubernetes_service_annotation_prometheus_io_port
+            target_label: __address__
+          - action: labelmap
+            regex: __meta_kubernetes_service_label_(.+)
+          - action: replace
+            source_labels:
+              - __meta_kubernetes_namespace
+            target_label: kubernetes_namespace
+          - action: replace
+            source_labels:
+              - __meta_kubernetes_service_name
+            target_label: kubernetes_name
+          - action: replace
+            source_labels:
+              - __meta_kubernetes_pod_node_name
+            target_label: kubernetes_node
+        scrape_interval: 5m
+        scrape_timeout: 30s
+      - job_name: kubernetes-services
+        kubernetes_sd_configs:
+          - role: service
+        metrics_path: /probe
+        params:
+          module:
+            - http_2xx
+        relabel_configs:
+          - action: keep
+            regex: true
+            source_labels:
+              - __meta_kubernetes_service_annotation_prometheus_io_probe
+          - source_labels:
+              - __address__
+            target_label: __param_target
+          - replacement: blackbox
+            target_label: __address__
+          - source_labels:
+              - __param_target
+            target_label: instance
+          - action: labelmap
+            regex: __meta_kubernetes_service_label_(.+)
+          - source_labels:
+              - __meta_kubernetes_namespace
+            target_label: kubernetes_namespace
+          - source_labels:
+              - __meta_kubernetes_service_name
+            target_label: kubernetes_name
+      - job_name: kubernetes-pods
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - action: keep
+            regex: true
+            source_labels:
+              - __meta_kubernetes_pod_annotation_prometheus_io_scrape
+          - action: replace
+            regex: (https?)
+            source_labels:
+              - __meta_kubernetes_pod_annotation_prometheus_io_scheme
+            target_label: __scheme__
+          - action: replace
+            regex: (.+)
+            source_labels:
+              - __meta_kubernetes_pod_annotation_prometheus_io_path
+            target_label: __metrics_path__
+          - action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            source_labels:
+              - __address__
+              - __meta_kubernetes_pod_annotation_prometheus_io_port
+            target_label: __address__
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+          - action: replace
+            source_labels:
+              - __meta_kubernetes_namespace
+            target_label: kubernetes_namespace
+          - action: replace
+            source_labels:
+              - __meta_kubernetes_pod_name
+            target_label: kubernetes_pod_name
+          - action: drop
+            regex: Pending|Succeeded|Failed
+            source_labels:
+              - __meta_kubernetes_pod_phase
+      - job_name: kubernetes-pods-slow
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - action: keep
+            regex: true
+            source_labels:
+              - __meta_kubernetes_pod_annotation_prometheus_io_scrape_slow
+          - action: replace
+            regex: (https?)
+            source_labels:
+              - __meta_kubernetes_pod_annotation_prometheus_io_scheme
+            target_label: __scheme__
+          - action: replace
+            regex: (.+)
+            source_labels:
+              - __meta_kubernetes_pod_annotation_prometheus_io_path
+            target_label: __metrics_path__
+          - action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            source_labels:
+              - __address__
+              - __meta_kubernetes_pod_annotation_prometheus_io_port
+            target_label: __address__
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+          - action: replace
+            source_labels:
+              - __meta_kubernetes_namespace
+            target_label: kubernetes_namespace
+          - action: replace
+            source_labels:
+              - __meta_kubernetes_pod_name
+            target_label: kubernetes_pod_name
+          - action: drop
+            regex: Pending|Succeeded|Failed
+            source_labels:
+              - __meta_kubernetes_pod_phase
+        scrape_interval: 5m
+        scrape_timeout: 30s
+
+# Values for configuring the deployment of Grafana
+# The Grafana Community chart is used and the guide for it
+# can be found at:
+#   https://github.com/grafana/helm-charts/blob/main/charts/grafana/README.md
+grafana:
+  enabled: true
+  sidecar:
+    datasources:
+      enabled: true
+      label: tobs_datasource
+      labelValue: "true"
+      # Disable Prometheus datasource by default as
+      # Promscale is the default datasource
+      defaultDatasourceEnabled: false
+    dashboards:
+      # option to enable multi-cluster support
+      # in Grafana dashboards by default disabled
+      multicluster:
+        global:
+          enabled: false
+      enabled: true
+      files:
+        - dashboards/k8s-cluster.json
+        - dashboards/k8s-hardware.json
+  adminPassword: ""
+  envFromSecret: "{{ .Release.Name }}-grafana-db"
+  prometheus:
+    datasource:
+      enabled: true
+      # By default url of data source is set to ts-prom connector instance
+      # deployed with this chart. If a connector isn't used this should be
+      # set to the prometheus-server.
+      url: "http://{{ .Release.Name }}-promscale-connector.{{ .Release.Namespace }}.svc.cluster.local:9201"
+  #timescale:
+  #  database:
+  #    enabled: true
+  #    host: *dbHost
+  #    port: 5432
+  #    user: grafanadb
+  #    pass: grafanadb
+  #    dbName: *metricDB
+  #    schema: grafanadb
+  #    sslMode: require
+  #  datasource:
+  #    enabled: true
+  #    user: grafana
+  #    pass: grafana
+  #    dbName: *metricDB
+  #    sslMode: require
+  #    # By default the url/host is set to the db instance deployed
+  #    # with this chart
+  #    host: *dbHost
+  #    port: 5432
+  #  adminUser: postgres
+  #  adminPassSecret: *dbPassSecret
+
+# By default kube-state-metrics are scraped using
+# serviceMonitor disable annotation based scraping
+kube-state-metrics:
+  prometheusScrape: false
+
+# By default node-exporter are scraped using
+# serviceMonitor disable annotation based scraping
+prometheus-node-exporter:
+  service:
+    annotations:
+      prometheus.io/scrape: "false"

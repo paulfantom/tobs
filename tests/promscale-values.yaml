@@ -1,0 +1,44 @@
+# Override the deployment namespace
+namespaceOverride: ""
+
+image: timescale/promscale:0.6.1
+# needs to be enabled for tracing support in Promscale
+# to expose traces port
+tracing:
+  enabled: false
+# by default Promscale isn't configured to accept traces
+# to enable pass below arg
+# arg:
+# - -otlp-grpc-server-listen-address=:9202
+
+connection:
+  # the db name in which the metrics will be stored
+  dbName: &metricDB postgres
+  # user to connect to TimescaleDB with
+  user: postgres
+  password:
+    # Name of a secret object (templated) containing the connection password
+    # Key must be value of promscale.connection.user
+    # Created by default if timescaledb-single.enabled=true
+    secretTemplate: &dbPassSecret "{{ .Release.Name }}-credentials"
+    timescaleDBSuperUserKey: PATRONI_SUPERUSER_PASSWORD
+  host:
+    # Host name (templated) of the database instance, default
+    # to service created in timescaledb-single
+    nameTemplate: &dbHost "{{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local"
+  port: 5432
+
+# configuration options for the service exposed by promscale
+service:
+  # we disable the load balancer by default, only a ClusterIP service
+  # will get created
+  loadBalancer:
+    enabled: false
+# Promscale deployment resource requests
+resources:
+  requests:
+    # By default this should be enough for a cluster
+    # with only a few pods
+    memory: 2Gi
+    cpu: 1
+

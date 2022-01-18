@@ -1,0 +1,36 @@
+# Values for configuring the deployment of TimescaleDB
+# The charts README is at:
+#    https://github.com/timescale/timescaledb-kubernetes/tree/master/charts/timescaledb-single
+# Check out the various configuration options (administration guide) at:
+#    https://github.com/timescale/timescaledb-kubernetes/blob/master/charts/timescaledb-single/admin-guide.md
+
+# Override the deployment namespace
+namespaceOverride: ""
+
+# TimescaleDB single helm chart configuration
+# TimescaleDB image tag
+image:
+  tag: pg12-ts2.1-latest
+# create only a ClusterIP service
+loadBalancer:
+  enabled: false
+# number or TimescaleDB pods to spawn (default is 3, 1 for no HA)
+replicaCount: 1
+# backup is disabled by default, enable it
+# if you want to backup timescaleDB to s3
+# you can provide the s3 details on tobs install
+# in the user prompt or you can set s3 details in the
+# env variables for the following keys:
+# PGBACKREST_REPO1_S3_BUCKET
+# PGBACKREST_REPO1_S3_ENDPOINT
+# PGBACKREST_REPO1_S3_REGION
+# PGBACKREST_REPO1_S3_KEY
+# PGBACKREST_REPO1_S3_KEY_SECRET
+backup:
+  enabled: false
+# TimescaleDB PVC sizes
+persistentVolumes:
+  data:
+    size: 150Gi
+  wal:
+    size: 20Gi
