@@ -10,14 +10,12 @@
   "regexManagers": [
     {
       "fileMatch": "^*.yml$",
-      "matchPaths": [".github/workflows/*"],
       "matchStrings": ["golangci-lint-version: v(?<currentValue>.*?)\\n"],
       "datasourceTemplate": "github-tags",
       "depNameTemplate": "golangci/golangci-lint"
     },
     {
       "fileMatch": "^*.yml$",
-      "matchPaths": [".github/workflows/*"],
       "matchStrings": [".*golang-version: (?<currentValue>.*?)\\n"],
       "datasourceTemplate": "golang-version",
       "depNameTemplate": "golang"
