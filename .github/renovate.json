@@ -15,7 +15,7 @@
       "depNameTemplate": "golangci/golangci-lint"
     },
     {
-      "fileMatch": "^*.github/workflows/*.yml$",
+      "fileMatch": ["^\\.github\\/workflows\\/[^/]+\\.ya?ml$"],
       "matchStrings": ["golang-version:\\s(?<currentValue>.*?)\\n"],
       "datasourceTemplate": "golang-version",
       "depNameTemplate": "golang"
