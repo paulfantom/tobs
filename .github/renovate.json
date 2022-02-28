@@ -35,7 +35,7 @@
     {
       "addLabels": ["github_actions"],
       "groupName": "github actions",
-      "matchPaths": [".github/**"]
+      "matchManagers": ["github_actions"]
     }
   ]
 }
