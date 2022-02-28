@@ -16,7 +16,7 @@
     },
     {
       "fileMatch": "^*.yml$",
-      "matchStrings": [".*golang-version: (?<currentValue>.*?)\\n"],
+      "matchStrings": ["golang-version: (?<currentValue>.*?)\\n"],
       "datasourceTemplate": "golang-version",
       "depNameTemplate": "golang"
     }
