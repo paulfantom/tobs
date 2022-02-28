@@ -31,11 +31,6 @@
       "addLabels": ["cli"],
       "groupName": "golang",
       "matchManagers": ["gomod"]
-    },
-    {
-      "addLabels": ["github_actions"],
-      "groupName": "github actions",
-      "matchManagers": ["github_actions"]
     }
   ]
 }
