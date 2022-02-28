@@ -9,8 +9,8 @@
   "ignoreDeps": ["k8s.io/client-go"],
   "regexManagers": [
     {
-      "fileMatch": ".github/workflows/*.yml",
-      "matchStrings": [".*golangci-lint-version: v(?<currentValue>.*?)\\n"],
+      "fileMatch": "*.yml",
+      "matchStrings": ["golangci-lint-version: v(?<currentValue>.*?)\\n"],
       "datasourceTemplate": "github-tags",
       "depNameTemplate": "golangci/golangci-lint"
     },
