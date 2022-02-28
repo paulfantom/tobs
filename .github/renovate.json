@@ -7,6 +7,7 @@
   "dependencyDashboardLabels": ["dependencies"],
   "dependencyDashboardAutoclose": "true",
   "labels": ["dependencies"],
+  "ignoreDeps": ["k8s.io/client-go"],
   "regexManagers": [
     {
       "fileMatch": ".github/workflows/*.yml",
