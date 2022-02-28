@@ -15,7 +15,7 @@
       "depNameTemplate": "golangci/golangci-lint"
     },
     {
-      "fileMatch": "^workflows/*.yml$",
+      "fileMatch": "^*.github/workflows/*.yml$",
       "matchStrings": ["golang-version:\\s(?<currentValue>.*?)\\n"],
       "datasourceTemplate": "golang-version",
       "depNameTemplate": "golang",
@@ -31,6 +31,11 @@
       "addLabels": ["cli"],
       "groupName": "golang",
       "matchManagers": ["gomod"]
+    },
+    { 
+      "addLabels": ["github_actions"],
+      "groupName": "github actions",
+      "matchPaths": [".github/**"]
     }
   ]
 }
