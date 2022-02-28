@@ -10,7 +10,7 @@
   "regexManagers": [
     {
       "fileMatch": "^*.yml$",
-      "matchStrings": ["golangci-lint-version: v(?<currentValue>.*?)\\n"],
+      "matchStrings": ["golangci-lint-version:\\s(?<currentValue>.*?)\\n"],
       "datasourceTemplate": "github-tags",
       "depNameTemplate": "golangci/golangci-lint"
     },
